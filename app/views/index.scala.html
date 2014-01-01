@@ -1,0 +1,58 @@
+@(message: String)
+
+@main("Play 2 JavaScript Routing") {
+
+    <fieldset>
+        <form>
+            <label for="personName">Name:</label>
+            <input type="text" name="personName" id="personName"/>
+            <input type="button" value="Create" id="createPerson"/>
+        </form>
+    </fieldset>
+    <ul id="peopleList"></ul>
+
+    <script>
+    var doc = $ (document);
+    doc.ready (function() {
+      // Delete a person
+      doc.on ('click', '.deletePerson', function(e) {
+        var target = $(e.target);
+        var id = target.data('id');
+        appRoutes.controllers.Application.delete(id).ajax( {
+          success : function ( data ) {
+            target.closest('li').remove();
+          }
+        });
+      });
+
+      // Create a new person
+      $('#createPerson').click(function() {
+        var personNameInput = $('#personName');
+        var personName = personNameInput.val();
+        if(personName && personName.length > 0) {
+          var data = {
+            'name' : personName
+          };
+          appRoutes.controllers.Application.create().ajax({
+            data : JSON.stringify(data),
+            contentType : 'application/json',
+            success : function (person) {
+              $('#peopleList').append('<li>' + person.name + ' <a href="#" data-id="' + person.id + '" class="deletePerson">Delete</a></li>');
+                personNameInput.val('');
+            }
+          });
+        }
+      });
+
+      // Load existing data from the server
+      appRoutes.controllers.Application.getAll().ajax({
+        success : function(data) {
+          var peopleList = $('#peopleList');
+          $(data).each(function(index, person) {
+            peopleList.append('<li>' + person.name + ' <a href="#" data-id="' + person.id + '" class="deletePerson">Delete</a></li>');
+          });
+        }
+      });
+    }) ;
+    </script>
+}
